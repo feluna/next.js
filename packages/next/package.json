@@ -1,10 +1,10 @@
 {
-  "name": "next",
-  "version": "10.0.6",
+  "name": "@ikas/next",
+  "version": "10.2.2-ikas",
   "description": "The React Framework",
   "main": "./dist/server/next.js",
   "license": "MIT",
-  "repository": "vercel/next.js",
+  "repository": "feluna/next.js",
   "bugs": "https://github.com/vercel/next.js/issues",
   "homepage": "https://nextjs.org",
   "types": "types/index.d.ts",

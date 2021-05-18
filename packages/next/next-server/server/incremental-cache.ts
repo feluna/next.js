@@ -31,6 +31,8 @@ export class IncrementalCache {
   prerenderManifest: PrerenderManifest
   cache: LRUCache<string, IncrementalCacheValue>
   locales?: string[]
+  redis?: any
+  dir?: string
 
   constructor({
     max,
@@ -39,6 +41,8 @@ export class IncrementalCache {
     pagesDir,
     flushToDisk,
     locales,
+    redis,
+    dir,
   }: {
     dev: boolean
     max?: number
@@ -46,6 +50,8 @@ export class IncrementalCache {
     pagesDir: string
     flushToDisk?: boolean
     locales?: string[]
+    redis?: any
+    dir?: string
   }) {
     this.incrementalOptions = {
       dev,
@@ -79,6 +85,9 @@ export class IncrementalCache {
         return val.html!.length + JSON.stringify(val.pageData).length
       },
     })
+
+    this.redis = redis
+    this.dir = dir
   }
 
   private getSeedPath(pathname: string, ext: string): string {
@@ -158,6 +167,18 @@ export class IncrementalCache {
     if (data && manifestEntry) {
       data.curRevalidate = manifestEntry.initialRevalidateSeconds
     }
+
+    // REDIS SSG
+    if (this.redis && data && data.revalidateAfter !== false) {
+      try {
+        data.revalidateAfter = await this.redis.get(`${this.dir}${pathname}`)
+        data.isStale = data.revalidateAfter < new Date().getTime()
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    // REDIS SSG
+
     return data
   }
 
@@ -209,5 +230,18 @@ export class IncrementalCache {
         console.warn('Failed to update prerender files for', pathname, error)
       }
     }
+
+    // REDIS SSG
+    if (revalidateSeconds && this.redis) {
+      const ttl = revalidateSeconds * 1000
+      const revalidateAfter = new Date().getTime() + ttl
+      await this.redis.set(
+        `${this.dir}${pathname}`,
+        revalidateAfter,
+        'EX',
+        revalidateSeconds * 60
+      )
+    }
+    // REDIS SSG
   }
 }

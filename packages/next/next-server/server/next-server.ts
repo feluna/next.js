@@ -125,6 +125,7 @@ export type ServerConstructor = {
   conf?: NextConfig | null
   dev?: boolean
   customServer?: boolean
+  redis?: any
 }
 
 export default class Server {
@@ -175,6 +176,7 @@ export default class Server {
     dev = false,
     minimalMode = false,
     customServer = true,
+    redis,
   }: ServerConstructor & { minimalMode?: boolean } = {}) {
     this.dir = resolve(dir)
     this.quiet = quiet
@@ -271,6 +273,7 @@ export default class Server {
       ),
       locales: this.nextConfig.i18n?.locales,
       flushToDisk: !minimalMode && this.nextConfig.experimental.sprFlushToDisk,
+      redis: redis,
     })
 
     /**
